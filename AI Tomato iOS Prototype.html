@@ -1,0 +1,862 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Tomato iOS Prototype</title>
+  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+  <style>
+    :root {
+      --bg: #efe5d7;
+      --paper: rgba(255, 250, 243, 0.82);
+      --paper-strong: #fffaf4;
+      --ink: #241815;
+      --muted: #775f59;
+      --line: rgba(83, 55, 49, 0.14);
+      --tomato: #c54832;
+      --tomato-soft: #e9b6a4;
+      --leaf: #506146;
+      --gold: #a27d35;
+      --shadow: 0 30px 80px rgba(54, 31, 26, 0.16);
+      --radius-xl: 28px;
+      --radius-lg: 22px;
+      --radius-md: 16px;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { margin: 0; min-height: 100%; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(197, 72, 50, 0.15), transparent 28%),
+        radial-gradient(circle at 85% 15%, rgba(80, 97, 70, 0.16), transparent 24%),
+        linear-gradient(180deg, #e7dccd 0%, #f5eee6 45%, #efe6da 100%);
+      color: var(--ink);
+    }
+    button, input { font: inherit; }
+    #root { min-height: 100vh; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const iosFrameStyles = {
+      wrapper: {
+        display: 'inline-block',
+        padding: 12,
+        background: '#000',
+        borderRadius: 60,
+        boxShadow: '0 0 0 2px #1f2937, 0 20px 60px rgba(0,0,0,0.3)',
+        position: 'relative',
+      },
+      screen: {
+        position: 'relative',
+        borderRadius: 48,
+        overflow: 'hidden',
+        background: '#fff',
+      },
+      statusBar: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        height: 54,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        padding: '0 32px 0 32px',
+        fontSize: 16,
+        fontWeight: 600,
+        fontFamily: '-apple-system, "SF Pro Text", sans-serif',
+        zIndex: 20,
+        pointerEvents: 'none',
+      },
+      dynamicIsland: {
+        position: 'absolute',
+        top: 12,
+        left: '50%',
+        transform: 'translateX(-50%)',
+        width: 124,
+        height: 36,
+        background: '#000',
+        borderRadius: 999,
+        zIndex: 30,
+      },
+      statusIcons: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: 6,
+      },
+      signalIcon: {
+        display: 'flex',
+        alignItems: 'flex-end',
+        gap: 2,
+        height: 12,
+      },
+      signalBar: {
+        width: 3,
+        background: 'currentColor',
+        borderRadius: 1,
+      },
+      batteryIcon: {
+        width: 26,
+        height: 12,
+        border: '1.5px solid currentColor',
+        borderRadius: 3,
+        padding: 1,
+        position: 'relative',
+        opacity: 0.8,
+      },
+      batteryCap: {
+        position: 'absolute',
+        top: 3,
+        right: -3,
+        width: 2,
+        height: 6,
+        background: 'currentColor',
+        borderRadius: '0 1px 1px 0',
+      },
+      content: {
+        position: 'absolute',
+        top: 54,
+        left: 0,
+        right: 0,
+        bottom: 34,
+        overflow: 'auto',
+      },
+      homeIndicator: {
+        position: 'absolute',
+        bottom: 10,
+        left: '50%',
+        transform: 'translateX(-50%)',
+        width: 140,
+        height: 5,
+        background: 'rgba(0,0,0,0.3)',
+        borderRadius: 999,
+        zIndex: 10,
+      },
+    };
+
+    function IosFrame({
+      children,
+      width = 393,
+      height = 852,
+      time = '9:41',
+      battery = 86,
+    }) {
+      return (
+        <div style={iosFrameStyles.wrapper}>
+          <div style={{ ...iosFrameStyles.screen, width, height, background: '#fff' }}>
+            <div style={{ ...iosFrameStyles.statusBar, color: '#000' }}>
+              <span>{time}</span>
+              <div style={iosFrameStyles.statusIcons}>
+                <div style={iosFrameStyles.signalIcon}>
+                  <div style={{ ...iosFrameStyles.signalBar, height: 4 }} />
+                  <div style={{ ...iosFrameStyles.signalBar, height: 6 }} />
+                  <div style={{ ...iosFrameStyles.signalBar, height: 9 }} />
+                  <div style={{ ...iosFrameStyles.signalBar, height: 11 }} />
+                </div>
+                <svg width="16" height="12" viewBox="0 0 16 12" fill="none" style={{ color: '#000' }}>
+                  <path d="M8 11.5a1 1 0 100-2 1 1 0 000 2z" fill="currentColor" />
+                  <path d="M3 7.5a7 7 0 0110 0" stroke="currentColor" strokeWidth="1.3" fill="none" strokeLinecap="round" />
+                  <path d="M1 4.5a11 11 0 0114 0" stroke="currentColor" strokeWidth="1.3" fill="none" strokeLinecap="round" opacity="0.7" />
+                </svg>
+                <div style={iosFrameStyles.batteryIcon}>
+                  <div style={{
+                    width: `${battery}%`,
+                    height: '100%',
+                    background: 'currentColor',
+                    borderRadius: 1,
+                    opacity: 0.9,
+                  }} />
+                  <div style={iosFrameStyles.batteryCap} />
+                </div>
+              </div>
+            </div>
+            <div style={iosFrameStyles.dynamicIsland} />
+            <div style={iosFrameStyles.content}>{children}</div>
+            <div style={iosFrameStyles.homeIndicator} />
+          </div>
+        </div>
+      );
+    }
+
+    const prototypeData = {
+      tabs: [
+        { id: 'focus', label: '专注' },
+        { id: 'insight', label: 'AI' },
+        { id: 'plan', label: '日程' },
+        { id: 'garden', label: '森林' },
+      ],
+      tasks: [
+        { id: 'deck', title: '整理产品 deck', detail: '2 个冲刺番茄', time: '09:30', tone: '#C54832' },
+        { id: 'research', title: '读竞品复盘', detail: '1 个深度番茄', time: '11:10', tone: '#7A5A4C' },
+        { id: 'spec', title: '写交互规范', detail: 'AI 建议午后处理', time: '15:00', tone: '#506146' },
+      ],
+      sessions: [
+        { id: 's1', title: '设计评审前的整理', score: '92', duration: '25 min', insight: '你在第 12 分钟后进入稳定深流，消息干扰只出现 1 次。' },
+        { id: 's2', title: '写需求文档', score: '84', duration: '50 min', insight: '双番茄完成得很好，但第二段开场 4 分钟偏慢，建议加 2 分钟预热。' },
+      ],
+      garden: [
+        { id: 'seed-a', name: '晨光番茄', note: '连续 3 天晨间专注后解锁', emoji: '🍅' },
+        { id: 'seed-b', name: '深流柏树', note: '单日累计 4 个番茄成长 1 级', emoji: '🌲' },
+        { id: 'seed-c', name: '夜读月桂', note: '晚上 9 点后专注不刷屏', emoji: '🌿' },
+      ],
+      coachLines: [
+        '你早上进入状态更快，先把最难的一项放在 10:00 前。',
+        '连续两次长番茄后注意降噪休息，避免下午塌陷。',
+        '今天的最佳节奏是 25 / 5 / 25 / 15，而不是硬冲三连。'
+      ]
+    };
+
+    const prototypeUi = {
+      page: {
+        minHeight: '100vh',
+        display: 'grid',
+        placeItems: 'center',
+        padding: '48px 24px',
+      },
+      hero: {
+        width: 'min(1100px, 100%)',
+        display: 'grid',
+        gridTemplateColumns: 'minmax(280px, 380px) minmax(420px, 1fr)',
+        gap: 42,
+        alignItems: 'center',
+      },
+      intro: {
+        display: 'grid',
+        gap: 18,
+        alignContent: 'center',
+      },
+      eyebrow: {
+        fontSize: 12,
+        letterSpacing: '0.26em',
+        textTransform: 'uppercase',
+        color: 'var(--muted)',
+      },
+      title: {
+        fontFamily: '"Iowan Old Style", "Palatino Linotype", "Times New Roman", serif',
+        fontSize: 58,
+        lineHeight: 0.96,
+        letterSpacing: '-0.05em',
+        maxWidth: 350,
+      },
+      body: {
+        maxWidth: 340,
+        color: 'var(--muted)',
+        lineHeight: 1.6,
+        fontSize: 16,
+      },
+      note: {
+        padding: '16px 18px',
+        borderRadius: 20,
+        background: 'rgba(255, 250, 243, 0.5)',
+        boxShadow: 'inset 0 0 0 1px rgba(83,55,49,0.08)',
+        fontSize: 14,
+        color: 'var(--muted)',
+      },
+      appShell: {
+        position: 'relative',
+        minHeight: '100%',
+        background:
+          'radial-gradient(circle at 20% 0%, rgba(255,255,255,0.9), rgba(255,255,255,0) 28%), linear-gradient(180deg, #f3ebdf 0%, #e9dfd1 100%)',
+      },
+      screenWrap: {
+        display: 'grid',
+        gap: 14,
+        padding: '18px 18px 104px',
+      },
+      topRow: {
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+      },
+      chip: {
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: 8,
+        borderRadius: 999,
+        padding: '10px 14px',
+        border: '1px solid var(--line)',
+        background: 'rgba(255,255,255,0.45)',
+        color: 'var(--ink)',
+        fontSize: 13,
+      },
+      card: {
+        background: 'var(--paper)',
+        borderRadius: 'var(--radius-xl)',
+        boxShadow: 'var(--shadow)',
+        border: '1px solid rgba(83,55,49,0.08)',
+        backdropFilter: 'blur(16px)',
+      },
+      sectionTitle: {
+        fontFamily: '"Iowan Old Style", "Palatino Linotype", "Times New Roman", serif',
+        fontSize: 28,
+        letterSpacing: '-0.03em',
+      },
+      smallMuted: {
+        color: 'var(--muted)',
+        fontSize: 13,
+        lineHeight: 1.5,
+      },
+      primaryButton: {
+        border: 'none',
+        background: 'var(--tomato)',
+        color: '#fff8f3',
+        padding: '14px 18px',
+        borderRadius: 18,
+        fontWeight: 600,
+        boxShadow: '0 12px 24px rgba(197,72,50,0.3)',
+        cursor: 'pointer',
+      },
+      secondaryButton: {
+        border: '1px solid var(--line)',
+        background: 'rgba(255,255,255,0.58)',
+        color: 'var(--ink)',
+        padding: '14px 18px',
+        borderRadius: 18,
+        fontWeight: 600,
+        cursor: 'pointer',
+      },
+      tabBar: {
+        position: 'absolute',
+        left: 16,
+        right: 16,
+        bottom: 16,
+        display: 'grid',
+        gridTemplateColumns: 'repeat(4, 1fr)',
+        gap: 10,
+        padding: 10,
+        borderRadius: 26,
+        background: 'rgba(255, 250, 243, 0.86)',
+        boxShadow: '0 20px 40px rgba(54,31,26,0.14)',
+        border: '1px solid rgba(83,55,49,0.08)',
+        backdropFilter: 'blur(16px)',
+      },
+      tabButton: {
+        display: 'grid',
+        placeItems: 'center',
+        gap: 4,
+        minHeight: 54,
+        borderRadius: 18,
+        border: 'none',
+        background: 'transparent',
+        color: 'var(--muted)',
+        cursor: 'pointer',
+        transition: 'all 180ms ease',
+      },
+      modalScrim: {
+        position: 'absolute',
+        inset: 0,
+        background: 'rgba(36, 24, 21, 0.22)',
+        backdropFilter: 'blur(10px)',
+        display: 'grid',
+        placeItems: 'end center',
+        padding: '24px 16px 110px',
+        zIndex: 40,
+      },
+      modalCard: {
+        width: '100%',
+        borderRadius: 28,
+        background: '#fffaf4',
+        padding: 22,
+        boxShadow: '0 30px 60px rgba(36,24,21,0.2)',
+        border: '1px solid rgba(83,55,49,0.1)',
+      },
+    };
+
+    function App() {
+      const [screen, setScreen] = React.useState('focus');
+      const [sessionRunning, setSessionRunning] = React.useState(false);
+      const [remainingMinutes, setRemainingMinutes] = React.useState(25);
+      const [selectedTask, setSelectedTask] = React.useState('deck');
+      const [modal, setModal] = React.useState(null);
+      const [coachIndex, setCoachIndex] = React.useState(0);
+
+      React.useEffect(() => {
+        if (!sessionRunning) return undefined;
+        const timer = window.setInterval(() => {
+          setRemainingMinutes((current) => {
+            if (current <= 1) {
+              window.clearInterval(timer);
+              setSessionRunning(false);
+              setModal({ type: 'complete' });
+              return 25;
+            }
+            return current - 1;
+          });
+        }, 900);
+        return () => window.clearInterval(timer);
+      }, [sessionRunning]);
+
+      const selectedTaskItem = prototypeData.tasks.find((task) => task.id === selectedTask);
+      const progress = ((25 - remainingMinutes) / 25) * 100;
+
+      return (
+        <div style={prototypeUi.page}>
+          <div style={prototypeUi.hero}>
+            <div style={prototypeUi.intro}>
+              <div style={prototypeUi.eyebrow}>AI Tomato • iOS Flow Demo</div>
+              <div style={prototypeUi.title}>把番茄钟做成有判断力的陪练。</div>
+              <div style={prototypeUi.body}>
+                四个核心屏可点击：专注计时、AI 复盘、日程编排、森林成长。交互重点不是炫技，而是把「智能建议」和「专注反馈」放进一条清晰用户路径。
+              </div>
+              <div style={prototypeUi.note}>
+                假设：用户是知识工作者；核心差异不是单纯计时，而是 AI 根据任务类型、历史节奏和状态波动给出下一步建议。
+              </div>
+            </div>
+
+            <IosFrame>
+              <div style={prototypeUi.appShell}>
+                <div style={prototypeUi.screenWrap}>
+                  {screen === 'focus' && (
+                    <FocusScreen
+                      remainingMinutes={remainingMinutes}
+                      progress={progress}
+                      sessionRunning={sessionRunning}
+                      task={selectedTaskItem}
+                      onStart={() => setSessionRunning((value) => !value)}
+                      onOpenCoach={() => setModal({ type: 'coach' })}
+                      onNextCoach={() => setCoachIndex((value) => (value + 1) % prototypeData.coachLines.length)}
+                      coachLine={prototypeData.coachLines[coachIndex]}
+                      onJumpToPlan={() => setScreen('plan')}
+                    />
+                  )}
+                  {screen === 'insight' && (
+                    <InsightScreen
+                      sessions={prototypeData.sessions}
+                      onOpenSession={(sessionId) => setModal({ type: 'session', sessionId })}
+                    />
+                  )}
+                  {screen === 'plan' && (
+                    <PlanScreen
+                      tasks={prototypeData.tasks}
+                      selectedTask={selectedTask}
+                      onSelectTask={setSelectedTask}
+                      onPushFocus={() => setScreen('focus')}
+                    />
+                  )}
+                  {screen === 'garden' && (
+                    <GardenScreen
+                      items={prototypeData.garden}
+                      onOpenItem={(itemId) => setModal({ type: 'garden', itemId })}
+                    />
+                  )}
+                </div>
+
+                <TabBar active={screen} onChange={setScreen} />
+
+                {modal && (
+                  <ModalLayer
+                    modal={modal}
+                    onClose={() => setModal(null)}
+                  />
+                )}
+              </div>
+            </IosFrame>
+          </div>
+        </div>
+      );
+    }
+
+    function FocusScreen({
+      remainingMinutes,
+      progress,
+      sessionRunning,
+      task,
+      onStart,
+      onOpenCoach,
+      onNextCoach,
+      coachLine,
+      onJumpToPlan,
+    }) {
+      return (
+        <>
+          <div style={prototypeUi.topRow}>
+            <div>
+              <div style={prototypeUi.smallMuted}>今天状态</div>
+              <div style={{ ...prototypeUi.sectionTitle, fontSize: 30 }}>适合先做难题</div>
+            </div>
+            <button style={prototypeUi.chip} onClick={onJumpToPlan} data-testid="jump-plan">
+              <span>09:30</span>
+              <span style={{ color: 'var(--muted)' }}>下一项</span>
+            </button>
+          </div>
+
+          <div style={{ ...prototypeUi.card, padding: 22, display: 'grid', gap: 18 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div>
+                <div style={prototypeUi.smallMuted}>当前任务</div>
+                <div style={{ fontSize: 20, fontWeight: 700 }}>{task.title}</div>
+              </div>
+              <div style={{ ...prototypeUi.chip, color: task.tone }}>{task.detail}</div>
+            </div>
+
+            <div style={{ display: 'grid', placeItems: 'center', padding: '8px 0 2px' }}>
+              <div style={{
+                width: 226,
+                height: 226,
+                borderRadius: '50%',
+                display: 'grid',
+                placeItems: 'center',
+                background: `conic-gradient(var(--tomato) ${progress}%, rgba(197,72,50,0.12) 0)`,
+                boxShadow: 'inset 0 0 0 1px rgba(83,55,49,0.08)',
+              }}>
+                <div style={{
+                  width: 178,
+                  height: 178,
+                  borderRadius: '50%',
+                  background: 'linear-gradient(180deg, #fff9f3 0%, #f2e6d8 100%)',
+                  display: 'grid',
+                  placeItems: 'center',
+                  boxShadow: 'inset 0 0 0 1px rgba(83,55,49,0.08)',
+                }}>
+                  <div style={{ textAlign: 'center' }}>
+                    <div style={{ fontSize: 14, color: 'var(--muted)', marginBottom: 4 }}>番茄剩余</div>
+                    <div style={{
+                      fontFamily: '"Iowan Old Style", "Palatino Linotype", "Times New Roman", serif',
+                      fontSize: 68,
+                      letterSpacing: '-0.06em',
+                      lineHeight: 0.9,
+                    }}>
+                      {String(remainingMinutes).padStart(2, '0')}
+                    </div>
+                    <div style={{ fontSize: 14, color: 'var(--muted)', marginTop: 8 }}>
+                      {sessionRunning ? 'AI 正在监测节奏' : '未开始'}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+              <button style={prototypeUi.primaryButton} onClick={onStart} data-testid="toggle-session">
+                {sessionRunning ? '暂停本轮' : '开始番茄'}
+              </button>
+              <button style={prototypeUi.secondaryButton} onClick={onOpenCoach} data-testid="open-coach">
+                查看 AI 教练
+              </button>
+            </div>
+          </div>
+
+          <div
+            style={{
+              ...prototypeUi.card,
+              width: '100%',
+              padding: 18,
+              display: 'grid',
+              gap: 10,
+              textAlign: 'left',
+              cursor: 'pointer',
+              border: '1px solid rgba(197,72,50,0.16)',
+            }}
+            onClick={onOpenCoach}
+            role="button"
+            tabIndex="0"
+            onKeyDown={(event) => {
+              if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
+                onOpenCoach();
+              }
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ fontSize: 13, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--tomato)' }}>AI 教练提醒</span>
+              <span style={{ fontSize: 12, color: 'var(--muted)' }}>可点开</span>
+            </div>
+            <div style={{ fontSize: 19, lineHeight: 1.35 }}>{coachLine}</div>
+            <div>
+              <button style={{ ...prototypeUi.chip, cursor: 'pointer' }} onClick={(event) => { event.stopPropagation(); onNextCoach(); }}>
+                换一条建议
+              </button>
+            </div>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>
+            {[
+              { label: '深流概率', value: '76%' },
+              { label: '分心峰值', value: '11:45' },
+              { label: '建议休息', value: '5 min' },
+            ].map((item) => (
+              <div key={item.label} style={{ ...prototypeUi.card, padding: 14, display: 'grid', gap: 4 }}>
+                <div style={prototypeUi.smallMuted}>{item.label}</div>
+                <div style={{ fontSize: 22, fontWeight: 700 }}>{item.value}</div>
+              </div>
+            ))}
+          </div>
+        </>
+      );
+    }
+
+    function InsightScreen({ sessions, onOpenSession }) {
+      return (
+        <>
+          <div style={prototypeUi.topRow}>
+            <div>
+              <div style={prototypeUi.smallMuted}>今天的 AI 结论</div>
+              <div style={prototypeUi.sectionTitle}>你适合短冲刺后再拉长。</div>
+            </div>
+            <div style={{ ...prototypeUi.chip, color: 'var(--gold)' }}>专注指数 88</div>
+          </div>
+
+          <div style={{ ...prototypeUi.card, padding: 18, display: 'grid', gap: 14 }}>
+            <div style={{ display: 'grid', gap: 10 }}>
+              {['早上大脑更干净', '午后适合资料类任务', '高难任务不要排在 21:00 后'].map((line) => (
+                <div key={line} style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+                  <div style={{ width: 8, height: 8, borderRadius: 999, background: 'var(--tomato)' }} />
+                  <div style={{ fontSize: 15, lineHeight: 1.5 }}>{line}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div style={{ display: 'grid', gap: 12 }}>
+            {sessions.map((session) => (
+              <button
+                key={session.id}
+                style={{
+                  ...prototypeUi.card,
+                  padding: 18,
+                  display: 'grid',
+                  gap: 10,
+                  cursor: 'pointer',
+                  textAlign: 'left',
+                  border: 'none',
+                }}
+                onClick={() => onOpenSession(session.id)}
+                data-testid={`session-${session.id}`}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+                  <div style={{ fontSize: 18, fontWeight: 700 }}>{session.title}</div>
+                  <div style={{ fontSize: 28, fontFamily: '"Iowan Old Style", serif', color: 'var(--tomato)' }}>{session.score}</div>
+                </div>
+                <div style={prototypeUi.smallMuted}>{session.duration} · 点击查看详细分析</div>
+                <div style={{ fontSize: 15, lineHeight: 1.5 }}>{session.insight}</div>
+              </button>
+            ))}
+          </div>
+        </>
+      );
+    }
+
+    function PlanScreen({ tasks, selectedTask, onSelectTask, onPushFocus }) {
+      return (
+        <>
+          <div style={prototypeUi.topRow}>
+            <div>
+              <div style={prototypeUi.smallMuted}>AI 为你排的今天</div>
+              <div style={prototypeUi.sectionTitle}>先重后轻，别硬堆长任务。</div>
+            </div>
+            <button style={prototypeUi.chip} onClick={onPushFocus} data-testid="from-plan-focus">去专注</button>
+          </div>
+
+          <div style={{ ...prototypeUi.card, padding: 18, display: 'grid', gap: 12 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr 1fr', fontSize: 12, color: 'var(--muted)' }}>
+              <div>任务</div>
+              <div>时间</div>
+              <div>建议</div>
+            </div>
+            {tasks.map((task) => {
+              const active = task.id === selectedTask;
+              return (
+                <button
+                  key={task.id}
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: '1.2fr 1fr 1fr',
+                    alignItems: 'center',
+                    gap: 8,
+                    padding: '14px 12px',
+                    borderRadius: 18,
+                    border: active ? '1px solid rgba(197,72,50,0.35)' : '1px solid transparent',
+                    background: active ? 'rgba(197,72,50,0.1)' : 'rgba(255,255,255,0.45)',
+                    cursor: 'pointer',
+                    textAlign: 'left',
+                  }}
+                  onClick={() => onSelectTask(task.id)}
+                  data-testid={`task-${task.id}`}
+                >
+                  <div>
+                    <div style={{ fontWeight: 700 }}>{task.title}</div>
+                    <div style={prototypeUi.smallMuted}>{task.detail}</div>
+                  </div>
+                  <div style={{ color: 'var(--muted)', fontSize: 14 }}>{task.time}</div>
+                  <div style={{ color: task.tone, fontWeight: 700, fontSize: 13 }}>
+                    {active ? '已选为当前' : '可切换'}
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+
+          <div style={{ ...prototypeUi.card, padding: 18, display: 'grid', gap: 10 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div style={{ fontWeight: 700 }}>能量曲线</div>
+              <div style={prototypeUi.smallMuted}>AI 预测</div>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 8, alignItems: 'end', minHeight: 92 }}>
+              {[54, 72, 88, 64, 48, 58, 38].map((height, index) => (
+                <div key={index} style={{ display: 'grid', gap: 8, justifyItems: 'center' }}>
+                  <div style={{
+                    width: 22,
+                    height,
+                    borderRadius: 12,
+                    background: index === 2 ? 'var(--tomato)' : 'rgba(80,97,70,0.22)',
+                  }} />
+                  <div style={{ fontSize: 11, color: 'var(--muted)' }}>{index + 9}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </>
+      );
+    }
+
+    function GardenScreen({ items, onOpenItem }) {
+      return (
+        <>
+          <div style={prototypeUi.topRow}>
+            <div>
+              <div style={prototypeUi.smallMuted}>专注被种出来</div>
+              <div style={prototypeUi.sectionTitle}>你的森林不是装饰，是习惯证据。</div>
+            </div>
+            <div style={{ ...prototypeUi.chip, color: 'var(--leaf)' }}>连胜 6 天</div>
+          </div>
+
+          <div style={{ ...prototypeUi.card, padding: 18, display: 'grid', gap: 18 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: 12 }}>
+              <div style={{
+                borderRadius: 24,
+                minHeight: 180,
+                padding: 18,
+                background: 'linear-gradient(180deg, rgba(80,97,70,0.18), rgba(255,255,255,0.3))',
+                display: 'grid',
+                alignContent: 'end',
+                position: 'relative',
+                overflow: 'hidden',
+              }}>
+                <div style={{ position: 'absolute', inset: 0, opacity: 0.7 }}>
+                  <div style={{ position: 'absolute', bottom: 18, left: 16, fontSize: 88 }}>🍅</div>
+                  <div style={{ position: 'absolute', bottom: 24, right: 20, fontSize: 74 }}>🌲</div>
+                  <div style={{ position: 'absolute', top: 20, right: 24, fontSize: 44 }}>☁️</div>
+                </div>
+                <div style={{ position: 'relative', zIndex: 1 }}>
+                  <div style={{ fontSize: 13, color: 'var(--muted)' }}>本周主题</div>
+                  <div style={{ fontSize: 22, fontWeight: 700 }}>深流小温室</div>
+                </div>
+              </div>
+              <div style={{ display: 'grid', gap: 10 }}>
+                <div style={{ ...prototypeUi.card, padding: 14, background: 'rgba(255,250,243,0.62)' }}>
+                  <div style={prototypeUi.smallMuted}>已收获</div>
+                  <div style={{ fontSize: 28, fontWeight: 700 }}>14 株</div>
+                </div>
+                <div style={{ ...prototypeUi.card, padding: 14, background: 'rgba(255,250,243,0.62)' }}>
+                  <div style={prototypeUi.smallMuted}>下个奖励</div>
+                  <div style={{ fontSize: 18, fontWeight: 700 }}>专注 8 连胜</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>
+            {items.map((item) => (
+              <button
+                key={item.id}
+                style={{
+                  ...prototypeUi.card,
+                  padding: 14,
+                  display: 'grid',
+                  justifyItems: 'center',
+                  gap: 8,
+                  cursor: 'pointer',
+                  textAlign: 'center',
+                  border: 'none',
+                }}
+                onClick={() => onOpenItem(item.id)}
+                data-testid={`garden-${item.id}`}
+              >
+                <div style={{ fontSize: 32 }}>{item.emoji}</div>
+                <div style={{ fontSize: 14, fontWeight: 700 }}>{item.name}</div>
+              </button>
+            ))}
+          </div>
+        </>
+      );
+    }
+
+    function TabBar({ active, onChange }) {
+      const icons = {
+        focus: '◔',
+        insight: '✦',
+        plan: '▥',
+        garden: '✿',
+      };
+
+      return (
+        <div style={prototypeUi.tabBar}>
+          {prototypeData.tabs.map((tab) => {
+            const isActive = tab.id === active;
+            return (
+              <button
+                key={tab.id}
+                style={{
+                  ...prototypeUi.tabButton,
+                  background: isActive ? 'rgba(197,72,50,0.12)' : 'transparent',
+                  color: isActive ? 'var(--tomato)' : 'var(--muted)',
+                  fontWeight: isActive ? 700 : 500,
+                }}
+                onClick={() => onChange(tab.id)}
+                data-testid={`tab-${tab.id}`}
+              >
+                <span style={{ fontSize: 18 }}>{icons[tab.id]}</span>
+                <span style={{ fontSize: 12 }}>{tab.label}</span>
+              </button>
+            );
+          })}
+        </div>
+      );
+    }
+
+    function ModalLayer({ modal, onClose }) {
+      let title = '';
+      let body = '';
+
+      if (modal.type === 'coach') {
+        title = 'AI 教练';
+        body = '你今天最强的是起步速度，最弱的是午后切换成本。建议把资料整理类任务留在 14:00 后，把真正需要判断力的任务都压到中午前。';
+      } else if (modal.type === 'complete') {
+        title = '这一轮完成了';
+        body = 'AI 记录到你在最后 7 分钟几乎无切屏，建议现在休息 5 分钟，再接下一轮。';
+      } else if (modal.type === 'session') {
+        const session = prototypeData.sessions.find((item) => item.id === modal.sessionId);
+        title = session.title;
+        body = `${session.insight} 下一步建议：开始前先写下本轮唯一产出，避免进入时重新找焦点。`;
+      } else if (modal.type === 'garden') {
+        const item = prototypeData.garden.find((entry) => entry.id === modal.itemId);
+        title = item.name;
+        body = item.note;
+      }
+
+      return (
+        <div style={prototypeUi.modalScrim} onClick={onClose} data-testid="modal-layer">
+          <div style={prototypeUi.modalCard} onClick={(event) => event.stopPropagation()}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', gap: 16 }}>
+              <div>
+                <div style={{ ...prototypeUi.sectionTitle, fontSize: 30 }}>{title}</div>
+                <div style={{ ...prototypeUi.smallMuted, marginTop: 8, fontSize: 15 }}>{body}</div>
+              </div>
+              <button style={{ ...prototypeUi.chip, cursor: 'pointer' }} onClick={onClose} data-testid="close-modal">关闭</button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+  </script>
+</body>
+</html>
